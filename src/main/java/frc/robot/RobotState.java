@@ -1,5 +1,5 @@
 package frc.robot;
 
 public enum RobotState {
-    IDLE    
+    IDLE
 }
