@@ -1,5 +1,16 @@
 package frc.robot;
 
 public enum RobotState {
-    IDLE
+    IDLE,
+    HOME,
+    INTAKING,
+    PREPARING_SHOOTER_AND_INTAKING,
+    PREPARING_SHOOTER,
+    SHOOTING,
+    SHOOTING_AND_INTAKING,
+    L1_EXTEND_TELEOP,
+    L1_CLOSE_TELEOP,
+    L1_EXTEND_AUTON,
+    L1_CLOSE_AUTON,
+    UNJAM
 }
