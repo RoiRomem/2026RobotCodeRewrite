@@ -28,10 +28,10 @@ public class Robot extends LoggedRobot {
 
     Logger.start();
 
-    m_robotContainer = new RobotContainer();
-
     Superstate.getInstance().setSuperstateSet(RobotState.IDLE);
     TunableManager.tuningModeEnabled = Constants.tuningMode;
+
+    m_robotContainer = new RobotContainer();
   }
 
   @Override
