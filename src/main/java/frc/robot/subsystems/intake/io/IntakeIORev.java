@@ -25,4 +25,9 @@ public class IntakeIORev extends IntakeIO {
         _rollerVoltage = MathUtil.clamp(volts, -12.0, 12.0);
     }
 
+    @Override
+    public double getPivotAngleDeg() {
+        return 0.0;
+    }
+
 }

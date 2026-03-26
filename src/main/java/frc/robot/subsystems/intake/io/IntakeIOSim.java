@@ -43,8 +43,8 @@ public class IntakeIOSim extends IntakeIO {
                 IntakeConstants.kPivotGearRatio,
                 IntakeConstants.kMOIpivot,
                 IntakeConstants.kLengthPivot,
-                IntakeConstants.kMaxAngleRad,
                 IntakeConstants.kMinAngleRad,
+                IntakeConstants.kMaxAngleRad,
                 true,
                 IntakeConstants.kMinAngleRad,
                 0.001, 0.001); // Encoder noise (angle, velo)
@@ -107,7 +107,8 @@ public class IntakeIOSim extends IntakeIO {
     @Override
     public void setTargetAngle(double angleRads) {
         _closedLoopPivot = true;
-        this._targetAngleRad = MathUtil.clamp(angleRads, IntakeConstants.kMinAngleRad, IntakeConstants.kMaxAngleRad);
+        this._targetAngle = MathUtil.clamp(angleRads, IntakeConstants.kMinAngleRad, IntakeConstants.kMaxAngleRad);
+        this._targetAngleRad = Math.toRadians(_targetAngle);
     }
 
     @Override
@@ -124,8 +125,12 @@ public class IntakeIOSim extends IntakeIO {
     }
 
     private void setInputs(IntakeIOInputsAutoLogged inputs) {
-        inputs.absolutePivotAngle = pivotSim.getAngleRads();
-        inputs.relativePivotAngle = pivotSim.getAngleRads();
+        inputs.pivotTargetAngle = _targetAngle;
+        inputs.pivotAngleError = Math.abs(_targetAngle - Math.toDegrees(pivotSim.getAngleRads()));
+        inputs.absolutePivotAngleRad = pivotSim.getAngleRads();
+        inputs.relativePivotAngleRad = pivotSim.getAngleRads();
+        inputs.absolutePivotAngleDeg = Math.toDegrees(pivotSim.getAngleRads());
+        inputs.relativePivotAngleDeg = Math.toDegrees(pivotSim.getAngleRads());
         inputs.pivotClosedLoop = _closedLoopPivot;
         inputs.pivotAppliedVoltage = _pivotVoltage;
         inputs.pivotCurrent = new double[] { pivotSim.getCurrentDrawAmps() };
@@ -134,5 +139,10 @@ public class IntakeIOSim extends IntakeIO {
         inputs.rollerRPM = rollerSim.getAngularVelocityRPM();
 
         _pivotViz.setAngle(Math.toDegrees(pivotSim.getAngleRads()));
+    }
+
+    @Override
+    public double getPivotAngleDeg() {
+        return Math.toDegrees(pivotSim.getAngleRads());
     }
 }

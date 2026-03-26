@@ -3,7 +3,6 @@ package frc.robot.subsystems.intake.io;
 import org.littletonrobotics.junction.AutoLog;
 
 import team6230.koiupstream.io.UpstreamIO;
-import team6230.koiupstream.io.UpstreamIO.UpstreamIOInputs;
 
 public abstract class IntakeIO extends UpstreamIO<IntakeIOInputsAutoLogged> {
     protected double _targetAngle = Double.NaN;
@@ -14,8 +13,12 @@ public abstract class IntakeIO extends UpstreamIO<IntakeIOInputsAutoLogged> {
 
     @AutoLog
     public static class IntakeIOInputs extends UpstreamIOInputs {
-        public double relativePivotAngle = 0.0;
-        public double absolutePivotAngle = 0.0;
+        public double pivotTargetAngle = 0.0;
+        public double pivotAngleError = 0.0;
+        public double relativePivotAngleRad = 0.0;
+        public double absolutePivotAngleRad = 0.0;
+        public double relativePivotAngleDeg = 0.0;
+        public double absolutePivotAngleDeg = 0.0;
         public double pivotAppliedVoltage = 0.0;
         public double[] pivotCurrent = { 0.0 };
         public boolean pivotClosedLoop = false;
@@ -34,7 +37,10 @@ public abstract class IntakeIO extends UpstreamIO<IntakeIOInputsAutoLogged> {
 
     public abstract void setTargetAngle(double angle);
 
+    public abstract double getPivotAngleDeg();
+
     public double getTargetAngle() {
         return _targetAngle;
     }
+
 }
