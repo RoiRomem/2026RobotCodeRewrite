@@ -1,7 +1,5 @@
 package frc.robot.subsystems.intake;
 
-import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.RobotState;
 import frc.robot.subsystems.intake.io.IntakeIO;
@@ -17,7 +15,7 @@ public class Intake extends UpstreamSubsystem<RobotState, IntakeIO, IntakeIOInpu
 
     @Override
     public void update() {
-        Logger.processInputs(getName(), inputs);
+
     }
 
     @Override
@@ -27,8 +25,9 @@ public class Intake extends UpstreamSubsystem<RobotState, IntakeIO, IntakeIOInpu
 
     @Override
     public IntakeIO getIO() {
-        if (RobotBase.isSimulation())
+        if (RobotBase.isSimulation()) {
             return new IntakeIOSim();
+        }
         return new IntakeIORev();
     }
 }

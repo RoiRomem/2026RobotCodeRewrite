@@ -1,10 +1,8 @@
 package frc.robot;
 
-import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
-import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 import edu.wpi.first.wpilibj2.command.Command;
@@ -18,25 +16,21 @@ public class Robot extends LoggedRobot {
   private final RobotContainer m_robotContainer;
 
   public Robot() {
-    m_robotContainer = new RobotContainer();
-
     Logger.recordMetadata("ProjectName", "Team Koi Robot code");
 
     if (isReal()) {
       Logger.addDataReceiver(new WPILOGWriter());
       Logger.addDataReceiver(new NT4Publisher());
     } else {
-      setUseTiming(false);
-      String logPath = LogFileUtil.findReplayLog();
-      Logger.setReplaySource(new WPILOGReader(logPath));
-      Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim")));
+      Logger.addDataReceiver(new NT4Publisher());
+      // Logger.addDataReceiver(new WPILOGWriter(""));
     }
 
     Logger.start();
 
-    Superstate.getInstance()
-        .setSuperstateSet(RobotState.IDLE);
+    m_robotContainer = new RobotContainer();
 
+    Superstate.getInstance().setSuperstateSet(RobotState.IDLE);
     TunableManager.tuningModeEnabled = Constants.tuningMode;
   }
 

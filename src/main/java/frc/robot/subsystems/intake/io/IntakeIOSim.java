@@ -1,5 +1,10 @@
 package frc.robot.subsystems.intake.io;
 
+import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -16,6 +21,11 @@ public class IntakeIOSim extends IntakeIO {
     private final DCMotorSim rollerSim;
     private final SingleJointedArmSim pivotSim;
 
+    @AutoLogOutput
+    public final LoggedMechanism2d _pivotMech;
+    private final LoggedMechanismRoot2d _pivotRoot;
+    private final LoggedMechanismLigament2d _pivotViz;
+
     private final ProfiledPIDController pivotController;
     private final ArmFeedforward pivotFeedforward;
 
@@ -23,6 +33,7 @@ public class IntakeIOSim extends IntakeIO {
     private boolean _closedLoopPivot = false;
 
     public IntakeIOSim() {
+
         var rollerMotor = DCMotor.getNEO(1).withReduction(IntakeConstants.kRollerGearRatio);
         rollerSim = new DCMotorSim(
                 LinearSystemId.createDCMotorSystem(rollerMotor, 0.012, 0.0001), rollerMotor);
@@ -32,13 +43,17 @@ public class IntakeIOSim extends IntakeIO {
                 IntakeConstants.kPivotGearRatio,
                 IntakeConstants.kMOIpivot,
                 IntakeConstants.kLengthPivot,
-                IntakeConstants.kMinAngleRad,
                 IntakeConstants.kMaxAngleRad,
+                IntakeConstants.kMinAngleRad,
                 true,
                 IntakeConstants.kMinAngleRad,
-                0.001);
+                0.001, 0.001); // Encoder noise (angle, velo)
 
-        // Define Trap Profile Constraints
+        _pivotMech = new LoggedMechanism2d(2.0, 2.0);
+        _pivotRoot = _pivotMech.getRoot("Pivot", 1.0, 1.0);
+        _pivotViz = _pivotRoot.append(
+                new LoggedMechanismLigament2d("IntakePivot", IntakeConstants.kLengthPivot, 0));
+
         var constraints = new TrapezoidProfile.Constraints(
                 IntakeConstants.kMaxVelocityRadPerSec,
                 IntakeConstants.kMaxAccelRadPerSecSquared);
@@ -58,6 +73,7 @@ public class IntakeIOSim extends IntakeIO {
 
     @Override
     public void updateInputs(IntakeIOInputsAutoLogged inputs) {
+
         if (DriverStation.isDisabled()) {
             runVoltsRollers(0);
             runVoltsArm(0);
@@ -116,5 +132,7 @@ public class IntakeIOSim extends IntakeIO {
         inputs.rollerAppliedVoltage = _rollerVoltage;
         inputs.rollerCurrent = new double[] { rollerSim.getCurrentDrawAmps() };
         inputs.rollerRPM = rollerSim.getAngularVelocityRPM();
+
+        _pivotViz.setAngle(Math.toDegrees(pivotSim.getAngleRads()));
     }
 }
