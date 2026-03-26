@@ -15,6 +15,10 @@ public class Intake extends UpstreamSubsystem<RobotState, IntakeIO, IntakeIOInpu
         super("Intake", new IntakeIOInputsAutoLogged());
 
         addSuperstateBehaviour(RobotState.INTAKING, () -> intaking());
+        addSuperstateBehaviour(RobotState.IDLE, () -> {
+            clearConditionalActions();
+            io.setTargetAngle(IntakeConstants.kClosedAngle);
+        });
     }
 
     private void intaking() {

@@ -1,6 +1,7 @@
 package frc.robot.subsystems.intake.io;
 
 import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
@@ -52,7 +53,7 @@ public class IntakeIOSim extends IntakeIO {
         _pivotMech = new LoggedMechanism2d(2.0, 2.0);
         _pivotRoot = _pivotMech.getRoot("Pivot", 1.0, 1.0);
         _pivotViz = _pivotRoot.append(
-                new LoggedMechanismLigament2d("IntakePivot", IntakeConstants.kLengthPivot, 0));
+                new LoggedMechanismLigament2d("IntakePivot", IntakeConstants.kLengthPivot, 300));
 
         var constraints = new TrapezoidProfile.Constraints(
                 IntakeConstants.kMaxVelocityRadPerSec,
@@ -99,6 +100,8 @@ public class IntakeIOSim extends IntakeIO {
                 setpoint.position,
                 setpoint.velocity);
 
+        Logger.recordOutput("Pivot Setpoint", setpoint.position);
+
         double totalVolts = pidOutput + ffOutput;
         _pivotVoltage = MathUtil.clamp(totalVolts, -12.0, 12.0);
         pivotSim.setInputVoltage(_pivotVoltage);
@@ -107,7 +110,7 @@ public class IntakeIOSim extends IntakeIO {
     @Override
     public void setTargetAngle(double angleRads) {
         _closedLoopPivot = true;
-        this._targetAngle = MathUtil.clamp(angleRads, IntakeConstants.kMinAngleRad, IntakeConstants.kMaxAngleRad);
+        this._targetAngle = MathUtil.clamp(angleRads, IntakeConstants.kMinAngle, IntakeConstants.kMaxAngle);
         this._targetAngleRad = Math.toRadians(_targetAngle);
     }
 
@@ -138,7 +141,8 @@ public class IntakeIOSim extends IntakeIO {
         inputs.rollerCurrent = new double[] { rollerSim.getCurrentDrawAmps() };
         inputs.rollerRPM = rollerSim.getAngularVelocityRPM();
 
-        _pivotViz.setAngle(Math.toDegrees(pivotSim.getAngleRads()));
+        _pivotViz.setAngle(IntakeConstants.kEncoderOffsetSim
+                - Math.toDegrees(pivotSim.getAngleRads()) / IntakeConstants.kEncoderToArmRatioSim);
     }
 
     @Override
