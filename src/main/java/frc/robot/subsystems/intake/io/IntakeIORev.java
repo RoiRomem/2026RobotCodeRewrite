@@ -1,5 +1,7 @@
 package frc.robot.subsystems.intake.io;
 
+import edu.wpi.first.math.MathUtil;
+
 public class IntakeIORev extends IntakeIO {
 
     @Override
@@ -14,19 +16,13 @@ public class IntakeIORev extends IntakeIO {
     }
 
     @Override
-    public void setTargetRPM(double rpm) {
-        _closedLoopRoller = true;
-        this._targetRPM = rpm;
-    }
-
-    @Override
     public void runVoltsArm(double volts) {
         _closedLoopPivot = false;
     }
 
     @Override
     public void runVoltsRollers(double volts) {
-        _closedLoopRoller = false;
+        _rollerVoltage = MathUtil.clamp(volts, -12.0, 12.0);
     }
 
 }

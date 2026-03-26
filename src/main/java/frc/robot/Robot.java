@@ -7,10 +7,10 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
-import team6230.koiupstream.superstates.Superstate;
-
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import team6230.koiupstream.superstates.Superstate;
+import team6230.koiupstream.tunable.TunableManager;
 
 public class Robot extends LoggedRobot {
   private Command m_autonomousCommand;
@@ -35,7 +35,9 @@ public class Robot extends LoggedRobot {
     Logger.start();
 
     Superstate.getInstance()
-          .setSuperstateSet(RobotState.IDLE);
+        .setSuperstateSet(RobotState.IDLE);
+
+    TunableManager.tuningModeEnabled = Constants.tuningMode;
   }
 
   @Override
