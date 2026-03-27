@@ -45,6 +45,8 @@ public abstract class IntakeIO extends UpstreamIO<IntakeIOInputsAutoLogged> {
 
     public abstract void stop();
 
+    public abstract void setPIDF(double kP, double kI, double kD, double kS, double kG, double kV, double kA);
+
     public double getTargetAngle() {
         return _targetAngle;
     }

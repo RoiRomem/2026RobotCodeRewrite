@@ -147,4 +147,17 @@ public class IntakeIORev extends IntakeIO {
         m_roller.stopMotor();
     }
 
+    @Override
+    public void setPIDF(double kP, double kI, double kD, double kS, double kG, double kV, double kA) {
+        var config = new SparkMaxConfig();
+        config.closedLoop
+                .pid(kP, kI, kD).feedForward
+                .kS(kS)
+                .kCos(kG)
+                .kV(kV)
+                .kA(kA);
+
+        m_pivot.configure(config, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+    }
+
 }

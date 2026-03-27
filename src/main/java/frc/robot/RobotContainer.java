@@ -25,6 +25,8 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
+    // intake.setDefaultCommand(intake.joystickControlCommand(() ->
+    // driverController.getLeftY()));
     superstate.setDefaultWantedState(RobotState.IDLE);
 
     IntakeButton

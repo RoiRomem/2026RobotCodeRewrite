@@ -39,8 +39,10 @@ public class IntakeConstants {
     public final static double kMinAngleRad = Math.toRadians(kMinAngle);
     public final static double kMaxAngleRad = Math.toRadians(kMaxAngle);
 
-    public static final double kMinPhysicalAngleDeg = kMinAngle / kEncoderToPivotRatio;
-    public static final double kMaxPhysicalAngleDeg = kMaxAngle / kEncoderToPivotRatio;
+    public final static double kGroundParallelRad = 5.67232;
+
+    public static final double kMinPhysicalAngleDeg = 5 / kEncoderToPivotRatio;
+    public static final double kMaxPhysicalAngleDeg = 325 / kEncoderToPivotRatio;
     public static final double kMinPhysicalAngleRad = Math.toRadians(kMinPhysicalAngleDeg);
     public static final double kMaxPhysicalAngleRad = Math.toRadians(kMaxPhysicalAngleDeg);
 
@@ -54,9 +56,14 @@ public class IntakeConstants {
     public static final int kPivotCurrentLimits = 20;
     public static final int kRollerCurrentLimits = 40;
 
-    public final static double kPsim = 1, kIsim = 0, kDsim = 0.1;
-    public final static double kSsim = 1.44, kVsim = 0.025, kAsim = 0, kGsim = 3;
+    public final static double kPsim = 0.01;
+    public final static double kIsim = 0;
+    public final static double kDsim = 0;
+    public final static double kSsim = 0.05;
+    public final static double kGsim = 1.5;
+    public final static double kVsim = 0;
+    public final static double kAsim = 0;
 
-    public final static double kMaxVelocityRadPerSec = 2 * Math.PI;
-    public final static double kMaxAccelRadPerSecSquared = Math.PI;
+    public final static double kMaxVelocityRadPerSec = 8 * Math.PI;
+    public final static double kMaxAccelRadPerSecSquared = 24 * Math.PI;
 }
