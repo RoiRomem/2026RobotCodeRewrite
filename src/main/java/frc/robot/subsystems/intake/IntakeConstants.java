@@ -16,6 +16,12 @@ public class IntakeConstants {
     public static final double kEncoderOffsetSim = 90;
     public static final double kEncoderToPivotRatio = (kEncoderOpen - kEncoderClosed) / (kPivotMaxDeg - kPivotMinDeg);
 
+    public static final double kThroughBoreRange = 360;
+    public static final double kThroughBoreOffset = 160;
+
+    public static final double kForwardSoftLimit = 324;
+    public static final double kReverseSoftLimit = 6;
+
     public static double encoderToPivot(double encoderDeg) {
         return (encoderDeg - kEncoderClosed) / kEncoderToPivotRatio;
     }
@@ -37,6 +43,16 @@ public class IntakeConstants {
     public static final double kMaxPhysicalAngleDeg = kMaxAngle / kEncoderToPivotRatio;
     public static final double kMinPhysicalAngleRad = Math.toRadians(kMinPhysicalAngleDeg);
     public static final double kMaxPhysicalAngleRad = Math.toRadians(kMaxPhysicalAngleDeg);
+
+    public static final double kP = 0.0001, kI = 0, kD = 0;
+    public static final double kS = 0.144, kV = 0.0025, kA = 0, kG = 0.185;
+    public static final double kCosRatio = 1;
+    public static final double kMaxAcceleration = 46000;
+    public static final double kCruiseVelocity = 400000;
+    public static final double kTolerance = 0.5;
+
+    public static final int kPivotCurrentLimits = 20;
+    public static final int kRollerCurrentLimits = 40;
 
     public final static double kPsim = 1, kIsim = 0, kDsim = 0.1;
     public final static double kSsim = 1.44, kVsim = 0.025, kAsim = 0, kGsim = 3;
