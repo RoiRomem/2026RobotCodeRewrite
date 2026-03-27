@@ -1,5 +1,7 @@
 package frc.robot.subsystems.intake;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.RobotState;
 import frc.robot.subsystems.intake.io.IntakeIO;
@@ -40,6 +42,8 @@ public class Intake extends UpstreamSubsystem<RobotState, IntakeIO, IntakeIOInpu
 
     @Override
     public boolean isReady() {
+        Logger.recordOutput("IntakeIsReady",
+                Math.abs(io.getTargetAngle() - io.getPivotAngleDeg()) <= IntakeConstants.kErrorToleranceDeg);
         if (Superstate.getInstance().isCurrentWanted(RobotState.IDLE))
             return true;
         return Math.abs(io.getTargetAngle() - io.getPivotAngleDeg()) <= IntakeConstants.kErrorToleranceDeg;

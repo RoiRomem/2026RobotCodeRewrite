@@ -69,6 +69,7 @@ public class IntakeIOSim extends IntakeIO {
                 IntakeConstants.kGsim,
                 IntakeConstants.kVsim,
                 IntakeConstants.kAsim);
+
     }
 
     @Override
@@ -150,9 +151,7 @@ public class IntakeIOSim extends IntakeIO {
 
     @Override
     public double getPivotAngleDeg() {
-        double physicalArmDeg = Math.toDegrees(pivotSim.getAngleRads());
-
-        return (physicalArmDeg * IntakeConstants.kEncoderToPivotRatio) + 5;
+        return IntakeConstants.pivotToEncoder(Math.toDegrees(pivotSim.getAngleRads()));
     }
 
     @Override
