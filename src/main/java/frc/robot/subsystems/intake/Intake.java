@@ -9,21 +9,25 @@ import frc.robot.subsystems.intake.io.IntakeIOSim;
 import team6230.koiupstream.subsystems.ConditionalAction;
 import team6230.koiupstream.subsystems.UpstreamSubsystem;
 import team6230.koiupstream.superstates.Superstate;
+import team6230.koiupstream.sysid.AutoTuner;
 
 public class Intake extends UpstreamSubsystem<RobotState, IntakeIO, IntakeIOInputsAutoLogged> {
+
+    public AutoTuner tuner;
+
     public Intake() {
         super("Intake", new IntakeIOInputsAutoLogged());
 
         addSuperstateBehaviour(RobotState.INTAKING, () -> intaking());
         addSuperstateBehaviour(RobotState.IDLE, () -> {
             clearConditionalActions();
-            io.setTargetAngle(IntakeConstants.kClosedAngle);
+            io.setTargetAngle(IntakeConstants.kEncoderClosed);
         });
     }
 
     private void intaking() {
         clearConditionalActions();
-        io.setTargetAngle(IntakeConstants.kOpenAngle);
+        io.setTargetAngle(IntakeConstants.kEncoderOpen);
         registerConditionalAction(new ConditionalAction(
                 () -> io.getPivotAngleDeg() > IntakeConstants.kMinOpenAngle,
                 () -> io.runVoltsRollers(IntakeConstants.kIntakingVolts)));
@@ -36,7 +40,7 @@ public class Intake extends UpstreamSubsystem<RobotState, IntakeIO, IntakeIOInpu
 
     @Override
     public boolean isReady() {
-        if (Superstate.getInstance().isCurrent(RobotState.IDLE))
+        if (Superstate.getInstance().isCurrentWanted(RobotState.IDLE))
             return true;
         return Math.abs(io.getTargetAngle() - io.getPivotAngleDeg()) <= IntakeConstants.kErrorToleranceDeg;
     }
@@ -47,5 +51,21 @@ public class Intake extends UpstreamSubsystem<RobotState, IntakeIO, IntakeIOInpu
             return new IntakeIOSim();
         }
         return new IntakeIORev();
+    }
+
+    public void setVoltage(double volts) {
+        io.runVoltsPivot(volts);
+    }
+
+    public double getVelocity() {
+        return io.getPivotVelocity();
+    }
+
+    public double getPosition() {
+        return io.getPivotAngleDeg();
+    }
+
+    public void stopMotor() {
+        io.stop();
     }
 }

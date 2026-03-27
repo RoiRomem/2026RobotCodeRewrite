@@ -16,7 +16,7 @@ public class IntakeIORev extends IntakeIO {
     }
 
     @Override
-    public void runVoltsArm(double volts) {
+    public void runVoltsPivot(double volts) {
         _closedLoopPivot = false;
     }
 
@@ -28,6 +28,16 @@ public class IntakeIORev extends IntakeIO {
     @Override
     public double getPivotAngleDeg() {
         return 0.0;
+    }
+
+    @Override
+    public double getPivotVelocity() {
+        return 0;
+    }
+
+    @Override
+    public void stop() {
+
     }
 
 }

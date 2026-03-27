@@ -1,7 +1,6 @@
 package frc.robot.subsystems.intake.io;
 
 import org.littletonrobotics.junction.AutoLogOutput;
-import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
@@ -44,16 +43,16 @@ public class IntakeIOSim extends IntakeIO {
                 IntakeConstants.kPivotGearRatio,
                 IntakeConstants.kMOIpivot,
                 IntakeConstants.kLengthPivot,
-                IntakeConstants.kMinAngleRad,
-                IntakeConstants.kMaxAngleRad,
+                IntakeConstants.kMinPhysicalAngleRad,
+                IntakeConstants.kMaxPhysicalAngleRad,
                 true,
-                IntakeConstants.kMinAngleRad,
+                IntakeConstants.kMinPhysicalAngleRad,
                 0.001, 0.001); // Encoder noise (angle, velo)
 
         _pivotMech = new LoggedMechanism2d(2.0, 2.0);
         _pivotRoot = _pivotMech.getRoot("Pivot", 1.0, 1.0);
         _pivotViz = _pivotRoot.append(
-                new LoggedMechanismLigament2d("IntakePivot", IntakeConstants.kLengthPivot, 300));
+                new LoggedMechanismLigament2d("IntakePivot", IntakeConstants.kLengthPivot, 0));
 
         var constraints = new TrapezoidProfile.Constraints(
                 IntakeConstants.kMaxVelocityRadPerSec,
@@ -77,7 +76,7 @@ public class IntakeIOSim extends IntakeIO {
 
         if (DriverStation.isDisabled()) {
             runVoltsRollers(0);
-            runVoltsArm(0);
+            runVoltsPivot(0);
         }
 
         rollerSim.update(Constants.loopPeriodcSecs);
@@ -92,30 +91,30 @@ public class IntakeIOSim extends IntakeIO {
     }
 
     private void handlePivotClosedLoop() {
-        double pidOutput = pivotController.calculate(pivotSim.getAngleRads(), _targetAngleRad);
+        double currentArmRad = pivotSim.getAngleRads();
 
+        double pidOutput = pivotController.calculate(currentArmRad, _targetAngleRad);
         var setpoint = pivotController.getSetpoint();
+        double ffOutput = pivotFeedforward.calculate(setpoint.position, setpoint.velocity);
 
-        double ffOutput = pivotFeedforward.calculate(
-                setpoint.position,
-                setpoint.velocity);
-
-        Logger.recordOutput("Pivot Setpoint", setpoint.position);
-
-        double totalVolts = pidOutput + ffOutput;
-        _pivotVoltage = MathUtil.clamp(totalVolts, -12.0, 12.0);
+        _pivotVoltage = MathUtil.clamp(pidOutput + ffOutput, -12.0, 12.0);
         pivotSim.setInputVoltage(_pivotVoltage);
     }
 
     @Override
-    public void setTargetAngle(double angleRads) {
+    public void setTargetAngle(double targetEncoderDeg) {
         _closedLoopPivot = true;
-        this._targetAngle = MathUtil.clamp(angleRads, IntakeConstants.kMinAngle, IntakeConstants.kMaxAngle);
-        this._targetAngleRad = Math.toRadians(_targetAngle);
+        // 1. Convert the incoming Encoder Target to a Physical Arm Target
+        double targetArmDeg = IntakeConstants.encoderToPivot(targetEncoderDeg);
+
+        double clampedArmDeg = MathUtil.clamp(targetArmDeg, IntakeConstants.kPivotMinDeg, IntakeConstants.kPivotMaxDeg);
+
+        this._targetAngle = clampedArmDeg;
+        this._targetAngleRad = Math.toRadians(clampedArmDeg);
     }
 
     @Override
-    public void runVoltsArm(double volts) {
+    public void runVoltsPivot(double volts) {
         _closedLoopPivot = false;
         _pivotVoltage = MathUtil.clamp(volts, -12.0, 12.0);
         pivotSim.setInputVoltage(_pivotVoltage);
@@ -128,12 +127,17 @@ public class IntakeIOSim extends IntakeIO {
     }
 
     private void setInputs(IntakeIOInputsAutoLogged inputs) {
-        inputs.pivotTargetAngle = _targetAngle;
-        inputs.pivotAngleError = Math.abs(_targetAngle - Math.toDegrees(pivotSim.getAngleRads()));
-        inputs.absolutePivotAngleRad = pivotSim.getAngleRads();
-        inputs.relativePivotAngleRad = pivotSim.getAngleRads();
-        inputs.absolutePivotAngleDeg = Math.toDegrees(pivotSim.getAngleRads());
-        inputs.relativePivotAngleDeg = Math.toDegrees(pivotSim.getAngleRads());
+        double currentPivotDeg = Math.toDegrees(pivotSim.getAngleRads());
+
+        double currentEncoderDeg = IntakeConstants.pivotToEncoder(currentPivotDeg);
+        double targetEncoderDeg = IntakeConstants.pivotToEncoder(_targetAngle);
+
+        inputs.pivotTargetAngle = targetEncoderDeg;
+        inputs.pivotAngleError = Math.abs(targetEncoderDeg - currentEncoderDeg);
+        inputs.absolutePivotAngleRad = Math.toRadians(getPivotAngleDeg());
+        inputs.relativePivotAngleRad = Math.toRadians(getPivotAngleDeg());
+        inputs.absolutePivotAngleDeg = currentEncoderDeg;
+        inputs.relativePivotAngleDeg = getPivotAngleDeg();
         inputs.pivotClosedLoop = _closedLoopPivot;
         inputs.pivotAppliedVoltage = _pivotVoltage;
         inputs.pivotCurrent = new double[] { pivotSim.getCurrentDrawAmps() };
@@ -141,12 +145,24 @@ public class IntakeIOSim extends IntakeIO {
         inputs.rollerCurrent = new double[] { rollerSim.getCurrentDrawAmps() };
         inputs.rollerRPM = rollerSim.getAngularVelocityRPM();
 
-        _pivotViz.setAngle(IntakeConstants.kEncoderOffsetSim
-                - Math.toDegrees(pivotSim.getAngleRads()) / IntakeConstants.kEncoderToArmRatioSim);
+        _pivotViz.setAngle(currentPivotDeg + IntakeConstants.kEncoderOffsetSim);
     }
 
     @Override
     public double getPivotAngleDeg() {
-        return Math.toDegrees(pivotSim.getAngleRads());
+        double physicalArmDeg = Math.toDegrees(pivotSim.getAngleRads());
+
+        return (physicalArmDeg * IntakeConstants.kEncoderToPivotRatio) + 5;
+    }
+
+    @Override
+    public double getPivotVelocity() {
+        return Math.toDegrees(pivotSim.getVelocityRadPerSec());
+    }
+
+    @Override
+    public void stop() {
+        pivotSim.setInputVoltage(0);
+        rollerSim.setInput(0);
     }
 }

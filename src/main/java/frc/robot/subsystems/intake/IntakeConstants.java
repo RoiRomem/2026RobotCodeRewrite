@@ -6,12 +6,23 @@ public class IntakeConstants {
 
     public final static double kErrorToleranceDeg = 2;
 
-    public static final int kOpenAngle = 323;
-    public static final int kMinOpenAngle = 317;
-    public static final int kClosedAngle = 7;
+    public static final double kMinOpenAngle = 317;
+    public static final double kEncoderOpen = 323;
+    public static final double kEncoderClosed = 7;
 
-    public static final double kEncoderOffsetSim = 5.0;
-    public static final double kEncoderToArmRatioSim = (325.0 - 5.0) / 90.0;
+    public static final double kPivotMinDeg = 0.0;
+    public static final double kPivotMaxDeg = 90.0;
+
+    public static final double kEncoderOffsetSim = 90;
+    public static final double kEncoderToPivotRatio = (kEncoderOpen - kEncoderClosed) / (kPivotMaxDeg - kPivotMinDeg);
+
+    public static double encoderToPivot(double encoderDeg) {
+        return (encoderDeg - kEncoderClosed) / kEncoderToPivotRatio;
+    }
+
+    public static double pivotToEncoder(double armDeg) {
+        return (armDeg * kEncoderToPivotRatio) + kEncoderClosed;
+    }
 
     public static final int kIntakingVolts = 12;
 
@@ -21,6 +32,11 @@ public class IntakeConstants {
     public final static double kMaxAngle = 324;
     public final static double kMinAngleRad = Math.toRadians(kMinAngle);
     public final static double kMaxAngleRad = Math.toRadians(kMaxAngle);
+
+    public static final double kMinPhysicalAngleDeg = kMinAngle / kEncoderToPivotRatio;
+    public static final double kMaxPhysicalAngleDeg = kMaxAngle / kEncoderToPivotRatio;
+    public static final double kMinPhysicalAngleRad = Math.toRadians(kMinPhysicalAngleDeg);
+    public static final double kMaxPhysicalAngleRad = Math.toRadians(kMaxPhysicalAngleDeg);
 
     public final static double kPsim = 1, kIsim = 0, kDsim = 0.1;
     public final static double kSsim = 1.44, kVsim = 0.025, kAsim = 0, kGsim = 3;

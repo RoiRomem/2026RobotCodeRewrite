@@ -38,6 +38,8 @@ public class Robot extends LoggedRobot {
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
     Superstate.getInstance().updateLogic();
+    Logger.recordOutput("CurrentSuperstate", Superstate.getInstance().getSuperstate().toString());
+    Logger.recordOutput("CurrentWantedSuperstate", Superstate.getInstance().getWantedSuperstate().toString());
   }
 
   @Override
