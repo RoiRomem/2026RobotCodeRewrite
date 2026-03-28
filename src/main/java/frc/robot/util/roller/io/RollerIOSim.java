@@ -8,12 +8,11 @@ import frc.robot.subsystems.intake.IntakeConstants;
 import frc.robot.util.roller.RollerConfig;
 import frc.robot.util.roller.RollerConfig.RollerMotor;
 
-public class RollerIOSim extends RollerIO {
+public class RollerIOSim implements RollerIO {
     private double appliedVoltage = 0;
     private final DCMotorSim sim;
 
     public RollerIOSim(RollerConfig config) {
-        super(config);
 
         var motor = config.motor == RollerMotor.NEO ? DCMotor.getNEO(1) : DCMotor.getNeoVortex(1);
         var rollerMotor = motor.withReduction(IntakeConstants.kRollerGearRatio);
@@ -24,7 +23,7 @@ public class RollerIOSim extends RollerIO {
     @Override
     public void updateInputs(RollerIOInputsAutoLogged inputs) {
         inputs.appliedVoltage = appliedVoltage;
-        inputs.radsPerSec = getRollerRadsPerSec();
+        inputs.radsPerSec = sim.getAngularVelocityRadPerSec();
         inputs.rollerCurrent = new double[] { sim.getCurrentDrawAmps() };
     }
 
@@ -32,10 +31,5 @@ public class RollerIOSim extends RollerIO {
     public void runVoltage(double volt) {
         appliedVoltage = MathUtil.clamp(volt, -12, 12);
         sim.setInputVoltage(appliedVoltage);
-    }
-
-    @Override
-    public double getRollerRadsPerSec() {
-        return sim.getAngularVelocityRadPerSec();
     }
 }

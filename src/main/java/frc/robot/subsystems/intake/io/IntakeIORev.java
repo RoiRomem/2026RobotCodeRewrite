@@ -1,5 +1,10 @@
 package frc.robot.subsystems.intake.io;
 
+import static frc.robot.util.SparkUtil.ifOk;
+import static frc.robot.util.SparkUtil.tryUntilOk;
+
+import java.util.function.DoubleSupplier;
+
 import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
@@ -16,11 +21,15 @@ import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import frc.robot.RobotMap;
 import frc.robot.subsystems.intake.IntakeConstants;
 
-public class IntakeIORev extends IntakeIO {
+public class IntakeIORev implements IntakeIO {
     private SparkMax m_pivot;
     private RelativeEncoder m_relativeEncoder;
     private DutyCycleEncoder m_absoluteEncoder;
     private SparkClosedLoopController m_pivotController;
+
+    private Rotation2d _targetAngle = IntakeConstants.kMaxAngle;
+
+    private boolean _closedLoopPivot = false;
 
     public IntakeIORev() {
         m_pivot = new SparkMax(RobotMap.CanBus.kIntakePivotID, MotorType.kBrushless);
@@ -69,24 +78,32 @@ public class IntakeIORev extends IntakeIO {
                 .positionConversionFactor(360.0 / IntakeConstants.kPivotMotorToPivotGearRatio)
                 .velocityConversionFactor((360.0 / IntakeConstants.kPivotMotorToPivotGearRatio) / 60.0);
 
-        m_pivot.configure(pivotConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+        tryUntilOk(
+                m_pivot,
+                5,
+                () -> m_pivot.configure(pivotConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters));
 
         m_pivotController = m_pivot.getClosedLoopController();
 
-        m_relativeEncoder.setPosition(getAbsoluteEncoderDeg());
+        tryUntilOk(m_pivot, 5, () -> m_relativeEncoder.setPosition(getAbsoluteEncoderDeg()));
     }
 
     @Override
     public void updateInputs(IntakeIOInputsAutoLogged inputs) {
         inputs.absolutePivotAngleDeg = getAbsoluteEncoderDeg();
         inputs.absolutePivotAngleRad = Math.toRadians(getAbsoluteEncoderDeg());
-        inputs.pivotAngleError = Math.abs(_targetAngle.getDegrees() - m_relativeEncoder.getPosition());
-        inputs.pivotAppliedVoltage = m_pivot.getAppliedOutput() * m_pivot.getBusVoltage();
+        ifOk(m_pivot, m_relativeEncoder::getPosition, (value) -> Math.abs(_targetAngle.getDegrees() - value));
+        ifOk(
+                m_pivot,
+                new DoubleSupplier[] { m_pivot::getAppliedOutput, m_pivot::getBusVoltage },
+                (values) -> inputs.pivotAppliedVoltage = values[0] * values[1]);
         inputs.pivotClosedLoop = _closedLoopPivot;
         inputs.pivotCurrent = new double[] { m_pivot.getOutputCurrent() };
+        ifOk(m_pivot, m_pivot::getOutputCurrent, (value) -> inputs.pivotCurrent = new double[] { value });
         inputs.pivotTargetAngle = _targetAngle.getDegrees();
-        inputs.relativePivotAngleDeg = m_relativeEncoder.getPosition();
-        inputs.relativePivotAngleRad = Math.toRadians(m_relativeEncoder.getPosition());
+        ifOk(m_pivot, m_relativeEncoder::getPosition, (value) -> inputs.relativePivotAngleDeg = value);
+        ifOk(m_pivot, m_relativeEncoder::getPosition, (value) -> inputs.relativePivotAngleRad = Math.toRadians(value));
+
     }
 
     @Override
@@ -100,16 +117,6 @@ public class IntakeIORev extends IntakeIO {
     public void runVoltsPivot(double volts) {
         _closedLoopPivot = false;
         m_pivotController.setSetpoint(volts, ControlType.kVoltage);
-    }
-
-    @Override
-    public Rotation2d getPivotAngle() {
-        return Rotation2d.fromDegrees(m_relativeEncoder.getPosition());
-    }
-
-    @Override
-    public Rotation2d getPivotVelocity() {
-        return Rotation2d.fromDegrees(m_relativeEncoder.getVelocity());
     }
 
     @Override
@@ -135,4 +142,5 @@ public class IntakeIORev extends IntakeIO {
 
         return IntakeConstants.kEncoderInverted ? (360 / IntakeConstants.kPivotShaftToPivotGearRatio - raw) : raw;
     }
+
 }

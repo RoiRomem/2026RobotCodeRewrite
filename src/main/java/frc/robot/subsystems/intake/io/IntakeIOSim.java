@@ -16,7 +16,7 @@ import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import frc.robot.Constants;
 import frc.robot.subsystems.intake.IntakeConstants;
 
-public class IntakeIOSim extends IntakeIO {
+public class IntakeIOSim implements IntakeIO {
     private final SingleJointedArmSim pivotSim;
 
     @AutoLogOutput
@@ -28,6 +28,9 @@ public class IntakeIOSim extends IntakeIO {
     private final ArmFeedforward pivotFeedforward;
 
     private boolean _closedLoopPivot = false;
+
+    private Rotation2d _targetAngle = IntakeConstants.kMaxAngle;
+    private double _pivotVoltage = 0;
 
     public IntakeIOSim() {
 
@@ -120,14 +123,8 @@ public class IntakeIOSim extends IntakeIO {
         _pivotViz.setAngle(Math.toDegrees(pivotSim.getAngleRads()));
     }
 
-    @Override
-    public Rotation2d getPivotAngle() {
+    private Rotation2d getPivotAngle() {
         return Rotation2d.fromRadians(pivotSim.getAngleRads());
-    }
-
-    @Override
-    public Rotation2d getPivotVelocity() {
-        return Rotation2d.fromRadians(pivotSim.getVelocityRadPerSec());
     }
 
     @Override

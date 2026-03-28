@@ -4,7 +4,7 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.RobotBase;
+import frc.robot.Constants;
 import frc.robot.RobotMap;
 import frc.robot.RobotState;
 import frc.robot.subsystems.intake.io.IntakeIO;
@@ -72,7 +72,7 @@ public class Intake extends UpstreamSubsystem<RobotState, IntakeIO, IntakeIOInpu
         clearConditionalActions();
         io.setTargetAngle(IntakeConstants.kOpenAngle);
         registerConditionalAction(new ConditionalAction(
-                () -> io.getPivotAngle().getDegrees() < IntakeConstants.kMinOpenAngle.getDegrees(),
+                () -> inputs.relativePivotAngleDeg < IntakeConstants.kMinOpenAngle.getDegrees(),
                 () -> roller.runVoltage(IntakeConstants.kIntakingVolts)));
     }
 
@@ -81,7 +81,7 @@ public class Intake extends UpstreamSubsystem<RobotState, IntakeIO, IntakeIOInpu
         io.setTargetAngle(IntakeConstants.kOpenAngle);
         // when the arm is close enough to open we will close it a bit
         registerConditionalAction(new ConditionalAction(
-                () -> io.getPivotAngle().getDegrees() < IntakeConstants.kMinOpenAngle.getDegrees(), () -> {
+                () -> inputs.relativePivotAngleDeg < IntakeConstants.kMinOpenAngle.getDegrees(), () -> {
                     // we will set the target to the next step
                     indexCycling();
                 }));
@@ -97,7 +97,7 @@ public class Intake extends UpstreamSubsystem<RobotState, IntakeIO, IntakeIOInpu
         io.setTargetAngle(Rotation2d.fromDegrees(angleDeg));
         if (angleDeg != IntakeConstants.kMinOpenAngle.getDegrees())
             registerConditionalAction(new ConditionalAction(
-                    () -> io.getPivotAngle().getDegrees() > io.getTargetAngle().getDegrees() - 3,
+                    () -> inputs.relativePivotAngleDeg > inputs.pivotTargetAngle - 3,
                     () -> {
                         step++;
                         indexCycling();
@@ -116,29 +116,34 @@ public class Intake extends UpstreamSubsystem<RobotState, IntakeIO, IntakeIOInpu
     public boolean isReady() {
         if (Superstate.getInstance().isCurrentWanted(RobotState.INTAKING)
                 || Superstate.getInstance().isCurrentWanted(RobotState.HOME))
-            return Math.abs(io.getTargetAngle().getDegrees()
-                    - io.getPivotAngle().getDegrees()) <= IntakeConstants.kErrorToleranceDeg;
+            return Math.abs(inputs.pivotTargetAngle
+                    - inputs.relativePivotAngleDeg) <= IntakeConstants.kErrorToleranceDeg;
         return true;
     }
 
     @Override
     public IntakeIO getIO() {
-        if (RobotBase.isSimulation()) {
-            return new IntakeIOSim();
+        switch (Constants.currentMode) {
+            case REAL:
+                return new IntakeIORev();
+
+            case SIM:
+                return new IntakeIOSim();
+
+            case REPLAY:
+                return new IntakeIO() {
+                };
         }
-        return new IntakeIORev();
+        return new IntakeIO() {
+        };
     }
 
     public void setVoltage(double volts) {
         io.runVoltsPivot(volts);
     }
 
-    public Rotation2d getVelocity() {
-        return io.getPivotVelocity();
-    }
-
     public Rotation2d getPosition() {
-        return io.getPivotAngle();
+        return Rotation2d.fromDegrees(inputs.relativePivotAngleDeg);
     }
 
     public void stopMotor() {
