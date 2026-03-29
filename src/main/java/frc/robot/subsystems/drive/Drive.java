@@ -15,6 +15,7 @@ import static frc.robot.subsystems.drive.DriveConstants.ppConfig;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.DoubleSupplier;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -32,6 +33,8 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -44,13 +47,15 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.Constants.Mode;
+import frc.robot.RobotState;
 import frc.robot.util.LocalADStarAK;
+import team6230.koiupstream.subsystems.UpstreamDrivebase;
+import team6230.koiupstream.utils.SwerveInputStream;
 
-public class Drive extends SubsystemBase {
+public class Drive extends UpstreamDrivebase<RobotState> {
   static final Lock odometryLock = new ReentrantLock();
   private GyroIO gyroIO;
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
@@ -71,13 +76,16 @@ public class Drive extends SubsystemBase {
   private SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(kinematics, rawGyroRotation,
       lastModulePositions, Pose2d.kZero);
 
-  public Drive() {
+  public Drive(SwerveInputStream inputStream) {
+    super(inputStream);
     getIO();
     // Usage reporting for swerve template
     HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_AdvantageKit);
 
     // Start odometry thread
     SparkOdometryThread.getInstance().start();
+
+    registerDefaultDrive(this::defaultDrive);
 
     // Configure AutoBuilder for PathPlanner
     AutoBuilder.configure(
@@ -111,8 +119,32 @@ public class Drive extends SubsystemBase {
             (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
   }
 
+  private ChassisSpeeds defaultDrive(DoubleSupplier xSupplier, DoubleSupplier ySupplier, DoubleSupplier omegaSupplier) {
+    // Get linear velocity
+    Translation2d linearVelocity = getLinearVelocityFromJoysticks(xSupplier.getAsDouble(),
+        ySupplier.getAsDouble());
+
+    var omega = omegaSupplier.getAsDouble();
+
+    // Square rotation value for more precise control
+    omega = Math.copySign(omega * omega, omega);
+
+    // Convert to field relative speeds & send command
+    ChassisSpeeds speeds = new ChassisSpeeds(
+        linearVelocity.getX() * this.getMaxLinearSpeedMetersPerSec(),
+        linearVelocity.getY() * this.getMaxLinearSpeedMetersPerSec(),
+        omega * this.getMaxAngularSpeedRadPerSec());
+    boolean isFlipped = DriverStation.getAlliance().isPresent()
+        && DriverStation.getAlliance().get() == Alliance.Red;
+    return ChassisSpeeds.fromFieldRelativeSpeeds(
+        speeds,
+        isFlipped
+            ? this.getRotation().plus(new Rotation2d(Math.PI))
+            : this.getRotation());
+  }
+
   @Override
-  public void periodic() {
+  protected void updateInputs() {
     odometryLock.lock(); // Prevents odometry updates while reading data
     gyroIO.updateInputs(gyroInputs);
     Logger.processInputs("Drive/Gyro", gyroInputs);
@@ -313,6 +345,20 @@ public class Drive extends SubsystemBase {
   /** Returns the maximum angular speed in radians per sec. */
   public double getMaxAngularSpeedRadPerSec() {
     return maxSpeedMetersPerSec / driveBaseRadius;
+  }
+
+  private static Translation2d getLinearVelocityFromJoysticks(double x, double y) {
+    // Apply deadband
+    double linearMagnitude = Math.hypot(-x, -y);
+    Rotation2d linearDirection = new Rotation2d(Math.atan2(y, x));
+
+    // Square magnitude for more precise control
+    linearMagnitude = linearMagnitude * linearMagnitude;
+
+    // Return new linear velocity
+    return new Pose2d(Translation2d.kZero, linearDirection)
+        .transformBy(new Transform2d(linearMagnitude, 0.0, Rotation2d.kZero))
+        .getTranslation();
   }
 
   private void getIO() {
