@@ -14,4 +14,5 @@ public class RollerConfig {
     public int motorId = 0;
     public double gearRatio = 1;
     public double MOI = 0.012;
+    public int smartCurrentLimit = 20;
 }
