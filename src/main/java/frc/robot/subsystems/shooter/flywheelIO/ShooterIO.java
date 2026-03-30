@@ -1,4 +1,4 @@
-package frc.robot.subsystems.shooter.io;
+package frc.robot.subsystems.shooter.flywheelIO;
 
 import org.littletonrobotics.junction.AutoLog;
 
@@ -13,5 +13,8 @@ public interface ShooterIO extends UpstreamIO<ShooterIOInputsAutoLogged> {
         public double targetRPM = 0.0;
         public double currentRPM = 0.0;
         public double radsPerSec = 0.0;
+    }
+
+    public default void updateInputs(ShooterIOInputsAutoLogged inputs) {
     }
 }

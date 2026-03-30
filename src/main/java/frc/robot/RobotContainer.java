@@ -1,7 +1,10 @@
 package frc.robot;
 
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -14,7 +17,7 @@ import team6230.koiupstream.utils.SwerveInputStream;
 public class RobotContainer {
 
         private Superstate superstate = Superstate.getInstance();
-        private KoiController driverController = new KoiController(0, 0.05, 5, 5);
+        private static KoiController driverController = new KoiController(0, 0.05, 5, 5);
 
         // private final LoggedDashboardChooser<Command> autoChooser;
 
@@ -24,10 +27,10 @@ public class RobotContainer {
         private Trigger ShootingButton = driverController.rightTrigger();
         private Trigger UnjamButton = driverController.povUp();
 
-        private SwerveInputStream swerveInputStream = new SwerveInputStream(driverController::getSwerveDrive,
+        private static SwerveInputStream swerveInputStream = new SwerveInputStream(driverController::getSwerveDrive,
                         driverController::getSwerveStrafe, driverController::getSwerveTurn);
 
-        private Drive drive = new Drive(swerveInputStream);
+        private static Drive drive = new Drive(swerveInputStream);
 
         private Intake intake = new Intake();
 
@@ -73,5 +76,14 @@ public class RobotContainer {
                                 () -> drive.setPose(
                                                 new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
                                 drive);
+        }
+
+        public static Pose2d getRobotPose() {
+                return drive.getPose();
+        }
+
+        public static void addVisionMeasurement(Pose2d visionRobotPoseMeters, double timestampSeconds,
+                        Matrix<N3, N1> visionMeasurementStdDevs) {
+                drive.addVisionMeasurement(visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
         }
 }
