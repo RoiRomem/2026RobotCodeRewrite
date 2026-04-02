@@ -44,6 +44,6 @@ public class BallisticsParameters {
 
     public static final double kMaxShootingDist = 2.2;
 
-    public static final double kRightLaneMultiplier = 0.25;
-    public static final double kLeftLaneMultiplier = 0.75;
+    public static final double kRightLaneMultiplier = 1;
+    public static final double kLeftLaneMultiplier = 3;
 }

@@ -56,12 +56,18 @@ public class BallisticsCalculator {
     }
 
     private Translation2d calculatePassingPosition() {
-        var robotPosY = AllianceFlipUtil.applyY(RobotContainer.getRobotPose().getY());
-        var fieldCenterY = LinesHorizontal.center;
-        if (robotPosY > fieldCenterY) {
+        if (shouldPassLeft()) {
             return calculateLeftLanePassTranslation();
         }
         return calculateRightLanePassTranslation();
+    }
+
+    @AutoLogOutput
+    public boolean shouldPassLeft() {
+        var robotPosY = AllianceFlipUtil.applyY(RobotContainer.getRobotPose().getY());
+        var fieldCenterY = LinesHorizontal.center;
+
+        return robotPosY > fieldCenterY;
     }
 
     private Translation2d calculateLeftLanePassTranslation() {
