@@ -1,8 +1,5 @@
 package frc.robot.subsystems.intake;
 
-import org.littletonrobotics.junction.AutoLogOutput;
-import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.Constants;
 import frc.robot.RobotMap;
@@ -25,7 +22,6 @@ public class Intake extends UpstreamSubsystem<RobotState, IntakeIO, IntakeIOInpu
     private final RollerIO roller;
     private final RollerIOInputsAutoLogged rollerInputs;
 
-    @AutoLogOutput
     public int step = 1;
 
     public Intake() {
@@ -108,8 +104,6 @@ public class Intake extends UpstreamSubsystem<RobotState, IntakeIO, IntakeIOInpu
 
     @Override
     public void update() {
-        Logger.recordOutput("intake/isConditionsEmpty",
-                getConditionalActions().isEmpty());
     }
 
     @Override

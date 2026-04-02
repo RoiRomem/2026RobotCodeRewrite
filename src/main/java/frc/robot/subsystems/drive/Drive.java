@@ -30,6 +30,7 @@ import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -50,6 +51,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.Constants.Mode;
+import frc.robot.Robot;
 import frc.robot.RobotState;
 import frc.robot.util.LocalADStarAK;
 import team6230.koiupstream.subsystems.UpstreamDrivebase;
@@ -63,6 +65,8 @@ public class Drive extends UpstreamDrivebase<RobotState> {
   private final SysIdRoutine sysId;
   private final Alert gyroDisconnectedAlert = new Alert("Disconnected gyro, using kinematics as fallback.",
       AlertType.kError);
+
+  private PIDController _aimingPID;
 
   private SwerveDriveKinematics kinematics = new SwerveDriveKinematics(moduleTranslations);
   private Rotation2d rawGyroRotation = Rotation2d.kZero;
@@ -85,7 +89,10 @@ public class Drive extends UpstreamDrivebase<RobotState> {
     // Start odometry thread
     SparkOdometryThread.getInstance().start();
 
-    registerDefaultDrive(this::defaultDrive);
+    _aimingPID = new PIDController(DriveConstants.kPaiming, DriveConstants.kIaiming, DriveConstants.kDaiming);
+    _aimingPID.enableContinuousInput(-Math.PI, Math.PI);
+
+    registerDrives();
 
     // Configure AutoBuilder for PathPlanner
     AutoBuilder.configure(
@@ -119,6 +126,12 @@ public class Drive extends UpstreamDrivebase<RobotState> {
             (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
   }
 
+  private void registerDrives() {
+    registerDefaultDrive(this::defaultDrive);
+    registerDriveMode(RobotState.PREPARING_SHOOTER, this::shootingDrive);
+    registerDriveMode(RobotState.SHOOTING, this::shootingDrive);
+  }
+
   private ChassisSpeeds defaultDrive(DoubleSupplier xSupplier, DoubleSupplier ySupplier, DoubleSupplier omegaSupplier) {
     // Get linear velocity
     Translation2d linearVelocity = getLinearVelocityFromJoysticks(xSupplier.getAsDouble(),
@@ -130,10 +143,26 @@ public class Drive extends UpstreamDrivebase<RobotState> {
     omega = Math.copySign(omega * omega, omega);
 
     // Convert to field relative speeds & send command
-    ChassisSpeeds speeds = new ChassisSpeeds(
+    return convertFieldRelativeSpeedsToRobotRelative(new ChassisSpeeds(
         linearVelocity.getX() * this.getMaxLinearSpeedMetersPerSec(),
         linearVelocity.getY() * this.getMaxLinearSpeedMetersPerSec(),
-        omega * this.getMaxAngularSpeedRadPerSec());
+        omega * this.getMaxAngularSpeedRadPerSec()));
+  }
+
+  private ChassisSpeeds shootingDrive(DoubleSupplier xSupplier, DoubleSupplier ySupplier,
+      DoubleSupplier omegaSupplier) {
+    Translation2d linearVelocity = getLinearVelocityFromJoysticks(xSupplier.getAsDouble(), ySupplier.getAsDouble());
+    Rotation2d aimingAngle = Robot.ballisticsCalculator.getShootingRobotAngle();
+
+    double omega = _aimingPID.calculate(getRotation().getRadians(), aimingAngle.getRadians());
+
+    return convertFieldRelativeSpeedsToRobotRelative(new ChassisSpeeds(
+        linearVelocity.getX() * getMaxLinearSpeedMetersPerSec(),
+        linearVelocity.getY() * getMaxLinearSpeedMetersPerSec(),
+        omega));
+  }
+
+  private ChassisSpeeds convertFieldRelativeSpeedsToRobotRelative(ChassisSpeeds speeds) {
     boolean isFlipped = DriverStation.getAlliance().isPresent()
         && DriverStation.getAlliance().get() == Alliance.Red;
     return ChassisSpeeds.fromFieldRelativeSpeeds(

@@ -101,7 +101,7 @@ public class SparkOdometryThread {
       double[] sparkValues = new double[sparkSignals.size()];
       boolean isValid = true;
       for (int i = 0; i < sparkSignals.size(); i++) {
-        sparkValues[i] = sparkSignals.get(i).getAsDouble();
+        sparkValues[i] = sparkSignals.get(i).getAsDouble(); 
         if (sparks.get(i).getLastError() != REVLibError.kOk) {
           isValid = false;
         }

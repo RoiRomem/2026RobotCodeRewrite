@@ -3,6 +3,7 @@ package frc.robot;
 import edu.wpi.first.wpilibj.RobotBase;
 
 public class Constants {
+    public static boolean disableHAL = false;
     public static final double loopPeriodcSecs = 0.02;
     public static final boolean tuningMode = true;
 
