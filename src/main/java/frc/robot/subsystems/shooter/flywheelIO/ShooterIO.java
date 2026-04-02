@@ -17,4 +17,13 @@ public interface ShooterIO extends UpstreamIO<ShooterIOInputsAutoLogged> {
 
     public default void updateInputs(ShooterIOInputsAutoLogged inputs) {
     }
+
+    public default void runVolts(double volts) {
+    }
+
+    public default void stop() {
+    }
+
+    public default void runRPM(double RPM) {
+    }
 }

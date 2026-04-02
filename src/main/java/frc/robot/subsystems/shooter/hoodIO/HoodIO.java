@@ -12,4 +12,10 @@ public interface HoodIO extends UpstreamIO<HoodIOInputsAutoLogged> {
         public double servo1Voltage = 0.0;
         public double servo2Voltage = 0.0;
     }
+
+    public default void updateInputs(HoodIOInputsAutoLogged inputs) {
+    }
+
+    public default void setServosPositions(double angle) {
+    }
 }

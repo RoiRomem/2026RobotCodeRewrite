@@ -10,7 +10,10 @@ public class BallisticsParameters {
     public static final double kUnjamPower = -2000;
     public static final double kMaxSpeed = 35;
 
-    public static final double kNeutralZoneShootingSpeed = 18;
+    public static final double kPassingSpeed = 18;
+    public static final double kPassingAngle = 0;
+
+    public static final double kFlywheelDiameter = 0.1;
 
     public static final InterpolatingDoubleTreeMap kShotHoodAngleMap = new InterpolatingDoubleTreeMap();
     public static final InterpolatingDoubleTreeMap kShotFlywheelSpeedMap = new InterpolatingDoubleTreeMap();
@@ -40,4 +43,7 @@ public class BallisticsParameters {
     }
 
     public static final double kMaxShootingDist = 2.2;
+
+    public static final double kRightLaneMultiplier = 0.25;
+    public static final double kLeftLaneMultiplier = 0.75;
 }

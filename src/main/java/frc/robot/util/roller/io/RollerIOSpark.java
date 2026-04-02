@@ -37,7 +37,6 @@ public class RollerIOSpark implements RollerIO {
 
                 m_config
                                 .idleMode(IdleMode.kCoast)
-                                .smartCurrentLimit(IntakeConstants.kRollerCurrentLimits)
                                 .voltageCompensation(12)
                                 .smartCurrentLimit(config.smartCurrentLimit);
                 m_config.signals

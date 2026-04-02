@@ -32,6 +32,7 @@ public class RobotContainer {
 
         private static Drive drive = new Drive(swerveInputStream);
 
+        @SuppressWarnings("unused")
         private Intake intake = new Intake();
 
         public RobotContainer() {

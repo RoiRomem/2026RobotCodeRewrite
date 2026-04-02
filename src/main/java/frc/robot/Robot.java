@@ -9,6 +9,9 @@ import org.littletonrobotics.urcl.URCL;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.FieldConstants.LinesVertical;
+import frc.robot.subsystems.shooter.ballistics.BallisticsCalculator;
+import frc.robot.util.AllianceFlipUtil;
 import team6230.koiupstream.superstates.Superstate;
 import team6230.koiupstream.tunable.TunableManager;
 
@@ -16,6 +19,8 @@ public class Robot extends LoggedRobot {
   private Command m_autonomousCommand;
 
   private final RobotContainer m_robotContainer;
+
+  public static BallisticsCalculator ballisticsCalculator;
 
   public Robot() {
     Logger.recordMetadata("ProjectName", "Team Koi Robot code");
@@ -35,6 +40,7 @@ public class Robot extends LoggedRobot {
     Superstate.getInstance().setSuperstateSet(RobotState.IDLE);
     TunableManager.tuningModeEnabled = Constants.tuningMode;
 
+    ballisticsCalculator = new BallisticsCalculator();
     m_robotContainer = new RobotContainer();
   }
 
@@ -47,18 +53,6 @@ public class Robot extends LoggedRobot {
   }
 
   @Override
-  public void disabledInit() {
-  }
-
-  @Override
-  public void disabledPeriodic() {
-  }
-
-  @Override
-  public void disabledExit() {
-  }
-
-  @Override
   public void autonomousInit() {
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
@@ -68,38 +62,14 @@ public class Robot extends LoggedRobot {
   }
 
   @Override
-  public void autonomousPeriodic() {
-  }
-
-  @Override
-  public void autonomousExit() {
-  }
-
-  @Override
   public void teleopInit() {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
   }
 
-  @Override
-  public void teleopPeriodic() {
-  }
-
-  @Override
-  public void teleopExit() {
-  }
-
-  @Override
-  public void testInit() {
-    CommandScheduler.getInstance().cancelAll();
-  }
-
-  @Override
-  public void testPeriodic() {
-  }
-
-  @Override
-  public void testExit() {
+  public static boolean isInAllianceZone() {
+    var robotX = AllianceFlipUtil.applyX(RobotContainer.getRobotPose().getX());
+    return robotX < LinesVertical.allianceZone;
   }
 }

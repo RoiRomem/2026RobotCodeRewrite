@@ -1,20 +1,30 @@
 package frc.robot.subsystems.shooter.ballistics;
 
+import org.littletonrobotics.junction.AutoLogOutput;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.FieldConstants;
+import frc.robot.FieldConstants.LinesHorizontal;
+import frc.robot.FieldConstants.LinesVertical;
+import frc.robot.Robot;
 import frc.robot.RobotContainer;
 import frc.robot.util.AllianceFlipUtil;
 
 public class BallisticsCalculator {
-    public double getScoringSpeed() {
-        return BallisticsParameters.kShotFlywheelSpeedMap.get(getShooterDistanceToHub());
+    public double getFlywheelSetpoint() {
+        if (Robot.isInAllianceZone())
+            return convertSurfaceVelocityToRotationPerMinute(
+                    BallisticsParameters.kShotFlywheelSpeedMap.get(getShooterDistanceToHub()));
+        return convertSurfaceVelocityToRotationPerMinute(BallisticsParameters.kPassingSpeed);
     }
 
-    public double getScoringAngle() {
-        return BallisticsParameters.kShotHoodAngleMap.get(getShooterDistanceToHub());
+    public double getHoodSetpoint() {
+        if (Robot.isInAllianceZone())
+            return BallisticsParameters.kShotHoodAngleMap.get(getShooterDistanceToHub());
+        return BallisticsParameters.kPassingAngle;
     }
 
     private double getShooterDistanceToHub() {
@@ -22,6 +32,60 @@ public class BallisticsCalculator {
         var hubTranslation = getAllianceHubCenterTranslation();
 
         return shooterTranslation.getDistance(hubTranslation);
+    }
+
+    private double convertSurfaceVelocityToRotationPerMinute(double surfaceVelocity) {
+        return (surfaceVelocity * 60) / (Math.PI * BallisticsParameters.kFlywheelDiameter);
+    }
+
+    @SuppressWarnings("unused")
+    private double convertRotationPerMinuteToSurfaceVelocity(double rpm) {
+        return (rpm * Math.PI * BallisticsParameters.kFlywheelDiameter) / 60;
+    }
+
+    @AutoLogOutput
+    public Rotation2d getShootingRobotAngle() {
+        if (Robot.isInAllianceZone())
+            return calculateScoringAngle();
+        return calculatePassingAngle();
+    }
+
+    private Rotation2d calculateScoringAngle() {
+        return getDriveAngleWithShooterOffset(getAllianceHubCenterTranslation());
+    }
+
+    private Rotation2d calculatePassingAngle() {
+        var robotPosY = AllianceFlipUtil.applyY(RobotContainer.getRobotPose().getY());
+        var fieldCenterY = LinesHorizontal.center;
+        if (robotPosY > fieldCenterY) {
+            return calculateLeftLanePassAngle();
+        }
+        return calculateRightLanePassAngle();
+    }
+
+    private Rotation2d calculateLeftLanePassAngle() {
+        return getDriveAngleWithShooterOffset(makeLaneTarget(BallisticsParameters.kLeftLaneMultiplier));
+    }
+
+    private Rotation2d calculateRightLanePassAngle() {
+        return getDriveAngleWithShooterOffset(makeLaneTarget(BallisticsParameters.kRightLaneMultiplier));
+    }
+
+    private Pose2d makeLaneTarget(double sideMultiplier) {
+        return new Pose2d(
+                AllianceFlipUtil.applyX(LinesVertical.center / 4),
+                AllianceFlipUtil.applyY(LinesHorizontal.center / 2 * sideMultiplier),
+                new Rotation2d());
+    }
+
+    private Rotation2d getDriveAngleWithShooterOffset(Pose2d targetPose) {
+        return getDriveAngleWithShooterOffset(targetPose.getTranslation());
+    }
+
+    private Rotation2d getDriveAngleWithShooterOffset(Translation2d targetPose) {
+        return targetPose
+                .minus(getShooterPose().getTranslation())
+                .getAngle();
     }
 
     private Pose2d getShooterPose() {
