@@ -62,8 +62,7 @@ public class BallisticsCalculator {
         return calculateRightLanePassTranslation();
     }
 
-    @AutoLogOutput
-    public boolean shouldPassLeft() {
+    private boolean shouldPassLeft() {
         var robotPosY = AllianceFlipUtil.applyY(RobotContainer.getRobotPose().getY());
         var fieldCenterY = LinesHorizontal.center;
 
