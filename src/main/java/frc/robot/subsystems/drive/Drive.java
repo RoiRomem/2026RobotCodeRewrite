@@ -90,6 +90,7 @@ public class Drive extends UpstreamDrivebase<RobotState> {
     SparkOdometryThread.getInstance().start();
 
     _aimingPID = new PIDController(DriveConstants.kPaiming, DriveConstants.kIaiming, DriveConstants.kDaiming);
+    _aimingPID.enableContinuousInput(-Math.PI, Math.PI);
 
     registerDrives();
 
