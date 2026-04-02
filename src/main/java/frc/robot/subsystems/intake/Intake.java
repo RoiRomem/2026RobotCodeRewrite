@@ -2,6 +2,7 @@ package frc.robot.subsystems.intake;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.Constants;
+import frc.robot.Robot;
 import frc.robot.RobotMap;
 import frc.robot.RobotState;
 import frc.robot.subsystems.intake.io.IntakeIO;
@@ -17,12 +18,49 @@ import team6230.koiupstream.subsystems.ConditionalAction;
 import team6230.koiupstream.subsystems.ExtraIO;
 import team6230.koiupstream.subsystems.UpstreamSubsystem;
 import team6230.koiupstream.superstates.Superstate;
+import team6230.koiupstream.tunable.Tunable;
+import team6230.koiupstream.tunable.TunableManager;
 
 public class Intake extends UpstreamSubsystem<RobotState, IntakeIO, IntakeIOInputsAutoLogged> {
     private final RollerIO roller;
     private final RollerIOInputsAutoLogged rollerInputs;
 
     public int step = 1;
+
+    @Tunable
+    private double tunablePivotSetpoint = IntakeConstants.kMinAngle.getDegrees();
+
+    @Tunable
+    private double tunableRollerVolts = 0;
+
+    @Tunable
+    private double kP = Robot.isReal() ? IntakeConstants.kP : IntakeConstants.kPsim;
+
+    @Tunable
+    private double kI = Robot.isReal() ? IntakeConstants.kI : IntakeConstants.kIsim;
+
+    @Tunable
+    private double kD = Robot.isReal() ? IntakeConstants.kD : IntakeConstants.kDsim;
+
+    @Tunable
+    private double kS = Robot.isReal() ? IntakeConstants.kS : IntakeConstants.kSsim;
+
+    @Tunable
+    private double kG = Robot.isReal() ? IntakeConstants.kG : IntakeConstants.kGsim;
+
+    @Tunable
+    private double kV = Robot.isReal() ? IntakeConstants.kV : IntakeConstants.kVsim;
+
+    @Tunable
+    private double kA = Robot.isReal() ? IntakeConstants.kA : IntakeConstants.kAsim;
+
+    @Tunable
+    private double kMaxVelocityRadPerSec = Robot.isReal() ? IntakeConstants.kCruiseVelocity
+            : IntakeConstants.kMaxVelocityRadPerSec;
+
+    @Tunable
+    private double kMaxAccelRadPerSecSquared = Robot.isReal() ? IntakeConstants.kMaxAcceleration
+            : IntakeConstants.kMaxAccelRadPerSecSquared;
 
     public Intake() {
         super("Intake", new IntakeIOInputsAutoLogged());
@@ -104,6 +142,11 @@ public class Intake extends UpstreamSubsystem<RobotState, IntakeIO, IntakeIOInpu
 
     @Override
     public void update() {
+        if (TunableManager.checkChanged(this)) {
+            io.setPIDF(kP, kI, kD, kS, kG, kV, kA, kMaxVelocityRadPerSec, kMaxAccelRadPerSecSquared);
+            io.setTargetAngle(Rotation2d.fromDegrees(tunablePivotSetpoint));
+            roller.runVoltage(tunableRollerVolts);
+        }
     }
 
     @Override

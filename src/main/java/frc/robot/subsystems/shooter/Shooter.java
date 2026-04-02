@@ -1,5 +1,6 @@
 package frc.robot.subsystems.shooter;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.RobotMap;
@@ -19,6 +20,8 @@ import frc.robot.util.roller.io.RollerIOInputsAutoLogged;
 import team6230.koiupstream.subsystems.ExtraIO;
 import team6230.koiupstream.subsystems.UpstreamSubsystem;
 import team6230.koiupstream.superstates.Superstate;
+import team6230.koiupstream.tunable.Tunable;
+import team6230.koiupstream.tunable.TunableManager;
 
 public class Shooter extends UpstreamSubsystem<RobotState, ShooterIO, ShooterIOInputsAutoLogged> {
     // #region IOs
@@ -32,6 +35,29 @@ public class Shooter extends UpstreamSubsystem<RobotState, ShooterIO, ShooterIOI
     private boolean isShooting = false;
 
     private BallisticsCalculator ballisticsCalculator = Robot.ballisticsCalculator;
+
+    @Tunable
+    private double _tunedSurfaceSpeed = 0;
+    @Tunable
+    private double _tunedHoodAngle = 0;
+
+    @Tunable
+    private double kP = Robot.isReal() ? ShooterConstants.Flywheel.kP : ShooterConstants.Flywheel.kPSim;
+
+    @Tunable
+    private double kI = Robot.isReal() ? ShooterConstants.Flywheel.kI : ShooterConstants.Flywheel.kISim;
+
+    @Tunable
+    private double kD = Robot.isReal() ? ShooterConstants.Flywheel.kD : ShooterConstants.Flywheel.kDSim;
+
+    @Tunable
+    private double kS = Robot.isReal() ? ShooterConstants.Flywheel.kS : ShooterConstants.Flywheel.kSSim;
+
+    @Tunable
+    private double kV = Robot.isReal() ? ShooterConstants.Flywheel.kV : ShooterConstants.Flywheel.kVSim;
+
+    @Tunable
+    private double kA = Robot.isReal() ? ShooterConstants.Flywheel.kA : ShooterConstants.Flywheel.kASim;
 
     public Shooter() {
         super("Shooter", new ShooterIOInputsAutoLogged());
@@ -60,7 +86,15 @@ public class Shooter extends UpstreamSubsystem<RobotState, ShooterIO, ShooterIOI
 
     @Override
     public void update() {
-        if (!isShooting)
+        if (TunableManager.checkChanged(this)) {
+            if (DriverStation.isTest()) {
+                io.setPIDF(kP, kI, kD, kS, kV, kA);
+                io.runRPM(BallisticsCalculator.convertSurfaceVelocityToRotationPerMinute(_tunedSurfaceSpeed));
+                hoodIO.setServosPositions(_tunedHoodAngle);
+            }
+        }
+
+        if (!isShooting || DriverStation.isTest())
             return;
 
         var flywheelSetpoint = ballisticsCalculator.getFlywheelSetpoint();

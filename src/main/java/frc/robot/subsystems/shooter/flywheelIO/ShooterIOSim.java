@@ -81,4 +81,12 @@ public class ShooterIOSim implements ShooterIO {
         isClosedLoop = true;
         _targetRPM = rpm;
     }
+
+    @Override
+    public void setPIDF(double kP, double kI, double kD, double kS, double kV, double kA) {
+        controller.setPID(kP, kI, kD);
+        ffController.setKs(kS);
+        ffController.setKv(kV);
+        ffController.setKa(kA);
+    }
 }

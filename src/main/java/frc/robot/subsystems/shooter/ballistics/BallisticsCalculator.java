@@ -34,12 +34,11 @@ public class BallisticsCalculator {
         return shooterTranslation.getDistance(hubTranslation);
     }
 
-    private double convertSurfaceVelocityToRotationPerMinute(double surfaceVelocity) {
+    public static double convertSurfaceVelocityToRotationPerMinute(double surfaceVelocity) {
         return (surfaceVelocity * 60) / (Math.PI * BallisticsParameters.kFlywheelDiameter);
     }
 
-    @SuppressWarnings("unused")
-    private double convertRotationPerMinuteToSurfaceVelocity(double rpm) {
+    public static double convertRotationPerMinuteToSurfaceVelocity(double rpm) {
         return (rpm * Math.PI * BallisticsParameters.kFlywheelDiameter) / 60;
     }
 

@@ -8,7 +8,7 @@ public class ShooterConstants {
 
         public static final boolean kFollowerInverted = true;
 
-        public static final double kUnjamVolts = -6;
+        public static final double kUnjamVolts = -4;
 
         public static final double kRpmErrorTolerance = 50;
 

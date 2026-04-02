@@ -29,7 +29,8 @@ public interface IntakeIO extends UpstreamIO<IntakeIOInputsAutoLogged> {
     public default void stop() {
     };
 
-    public default void setPIDF(double kP, double kI, double kD, double kS, double kG, double kV, double kA) {
+    public default void setPIDF(double kP, double kI, double kD, double kS, double kG, double kV, double kA,
+            double kMaxVelocityRadPerSec, double kMaxAccelRadPerSecSquared) {
     };
 
 }

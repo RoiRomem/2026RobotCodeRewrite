@@ -26,4 +26,7 @@ public interface ShooterIO extends UpstreamIO<ShooterIOInputsAutoLogged> {
 
     public default void runRPM(double RPM) {
     }
+
+    public default void setPIDF(double kP, double kI, double kD, double kS, double kV, double kA) {
+    }
 }
