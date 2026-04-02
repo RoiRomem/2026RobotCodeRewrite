@@ -43,6 +43,8 @@ public class RobotContainer {
         }
 
         private void configureBindings() {
+                superstate.setDefaultWantedState(RobotState.IDLE);
+
                 IntakeButton
                                 .and(PreparingShooterButton.negate()).and(ShootingButton.negate())
                                 .whileTrue(superstate.setWantedSuperstateCommand(RobotState.INTAKING));
