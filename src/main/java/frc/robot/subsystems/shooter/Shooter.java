@@ -137,7 +137,7 @@ public class Shooter extends UpstreamSubsystem<RobotState, ShooterIO, ShooterIOI
     }
 
     private void shooting() {
-        isShooting = false;
+        isShooting = true;
         rollerIO.runVoltage(ShooterConstants.Roller.kFeedVolts);
     }
 

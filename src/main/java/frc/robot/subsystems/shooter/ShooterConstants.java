@@ -12,11 +12,11 @@ public class ShooterConstants {
 
         public static final double kRpmErrorTolerance = 50;
 
-        public static final double kPSim = 0.00008;
+        public static final double kPSim = 0.2;
         public static final double kISim = 0;
         public static final double kDSim = 0;
         public static final double kSSim = 0.01;
-        public static final double kVSim = 0.0018;
+        public static final double kVSim = 0.01651; 
         public static final double kASim = 0;
 
         public static final double kP = 0.00008;
