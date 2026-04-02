@@ -78,6 +78,10 @@ public class RobotContainer {
 
                 HomeButton
                                 .whileTrue(superstate.setWantedSuperstateCommand(RobotState.HOME));
+
+                driverController.leftBumper().onTrue(Commands.runOnce(() -> {
+                        drive.toggleShouldRoundOrientation();
+                }));
         }
 
         public Command getAutonomousCommand() {

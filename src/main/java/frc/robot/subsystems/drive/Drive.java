@@ -1,10 +1,3 @@
-// Copyright (c) 2021-2026 Littleton Robotics
-// http://github.com/Mechanical-Advantage
-//
-// Use of this source code is governed by a BSD
-// license that can be found in the LICENSE file
-// at the root directory of this project.
-
 package frc.robot.subsystems.drive;
 
 import static edu.wpi.first.units.Units.Volts;
@@ -29,6 +22,7 @@ import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
 import edu.wpi.first.hal.HAL;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -54,6 +48,7 @@ import frc.robot.Constants.Mode;
 import frc.robot.Robot;
 import frc.robot.RobotState;
 import frc.robot.util.LocalADStarAK;
+import frc.robot.util.MathHelper;
 import team6230.koiupstream.subsystems.UpstreamDrivebase;
 import team6230.koiupstream.utils.SwerveInputStream;
 
@@ -67,6 +62,8 @@ public class Drive extends UpstreamDrivebase<RobotState> {
       AlertType.kError);
 
   private PIDController _aimingPID;
+  @AutoLogOutput
+  private boolean _shouldRoundOrientation = false;
 
   private SwerveDriveKinematics kinematics = new SwerveDriveKinematics(moduleTranslations);
   private Rotation2d rawGyroRotation = Rotation2d.kZero;
@@ -137,16 +134,39 @@ public class Drive extends UpstreamDrivebase<RobotState> {
     Translation2d linearVelocity = getLinearVelocityFromJoysticks(xSupplier.getAsDouble(),
         ySupplier.getAsDouble());
 
-    var omega = omegaSupplier.getAsDouble();
+    double omega = 0;
 
-    // Square rotation value for more precise control
-    omega = Math.copySign(omega * omega, omega);
+    if (!_shouldRoundOrientation) {
+      omega = omegaSupplier.getAsDouble();
+
+      // Square rotation value for more precise control
+      omega = Math.copySign(omega * omega, omega);
+      omega *= this.getMaxAngularSpeedRadPerSec();
+    } else {
+      double currentAngle = getPose().getRotation().getRadians();
+      double wantedAngle = MathHelper.getClosestRadian(currentAngle, DriveConstants.kRoundedOrientations);
+
+      // Assuming your PID is tuned to output Radians per Second directly
+      omega = _aimingPID.calculate(currentAngle, wantedAngle);
+
+      Logger.recordOutput("Drive/currentAngle", currentAngle);
+      Logger.recordOutput("Drive/wantedAngle", wantedAngle);
+
+      // Compare Radians to Radians!
+      if (isInAimTolerance(currentAngle, wantedAngle)) {
+        _shouldRoundOrientation = false;
+      }
+    }
 
     // Convert to field relative speeds & send command
     return convertFieldRelativeSpeedsToRobotRelative(new ChassisSpeeds(
         linearVelocity.getX() * this.getMaxLinearSpeedMetersPerSec(),
         linearVelocity.getY() * this.getMaxLinearSpeedMetersPerSec(),
-        omega * this.getMaxAngularSpeedRadPerSec()));
+        omega));
+  }
+
+  private boolean isInAimTolerance(double currentAngle, double wantedAngle) {
+    return Math.abs(MathUtil.angleModulus(currentAngle - wantedAngle)) < DriveConstants.kAimingTolerance.getRadians();
   }
 
   private ChassisSpeeds shootingDrive(DoubleSupplier xSupplier, DoubleSupplier ySupplier,
@@ -388,6 +408,10 @@ public class Drive extends UpstreamDrivebase<RobotState> {
     return new Pose2d(Translation2d.kZero, linearDirection)
         .transformBy(new Transform2d(linearMagnitude, 0.0, Rotation2d.kZero))
         .getTranslation();
+  }
+
+  public void toggleShouldRoundOrientation() {
+    _shouldRoundOrientation = !_shouldRoundOrientation;
   }
 
   private void getIO() {
