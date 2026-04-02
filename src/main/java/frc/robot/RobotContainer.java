@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.vision.Vision;
 import team6230.koiupstream.superstates.Superstate;
 import team6230.koiupstream.utils.KoiController;
 import team6230.koiupstream.utils.SwerveInputStream;
@@ -38,6 +39,8 @@ public class RobotContainer {
         private Intake intake = new Intake();
         @SuppressWarnings("unused")
         private Shooter shooter = new Shooter();
+        @SuppressWarnings("unused")
+        private Vision vision = new Vision();
 
         public RobotContainer() {
                 // autoChooser = new LoggedDashboardChooser<>("Auto Choices",

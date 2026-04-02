@@ -69,7 +69,7 @@ public class Robot extends LoggedRobot {
   }
 
   public static boolean isInAllianceZone() {
-    var robotX = AllianceFlipUtil.applyX(RobotContainer.getRobotPose().getX());
+    var robotX = AllianceFlipUtil.applyX(RobotContainer.getRobotPose().getX() - 0.3);
     return robotX < LinesVertical.allianceZone;
   }
 }
