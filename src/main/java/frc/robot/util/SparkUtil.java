@@ -1,18 +1,20 @@
-// Copyright (c) 2021-2026 Littleton Robotics
-// http://github.com/Mechanical-Advantage
-//
-// Use of this source code is governed by a BSD
-// license that can be found in the LICENSE file
-// at the root directory of this project.
-
 package frc.robot.util;
 
-import com.revrobotics.REVLibError;
-import com.revrobotics.spark.SparkBase;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
+
+import com.revrobotics.PersistMode;
+import com.revrobotics.REVLibError;
+import com.revrobotics.ResetMode;
+import com.revrobotics.spark.ClosedLoopSlot;
+import com.revrobotics.spark.SparkBase;
+import com.revrobotics.spark.SparkFlex;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.SparkBaseConfig;
+import com.revrobotics.spark.config.SparkFlexConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
 
 public class SparkUtil {
   /** Stores whether any error was has been detected by other utility methods. */
@@ -52,5 +54,52 @@ public class SparkUtil {
         sparkStickyFault = true;
       }
     }
+  }
+
+  public static void tryToSetPidfUntillOkTune(SparkBase spark, int maxAttempts, SparkPIDF pidf, ClosedLoopSlot slot) {
+    SparkBaseConfig config;
+
+    if (spark instanceof SparkFlex) {
+      config = new SparkFlexConfig();
+    } else if (spark instanceof SparkMax) {
+      config = new SparkMaxConfig();
+    } else {
+      throw new IllegalArgumentException("Unknown SparkBase type!");
+    }
+
+    pidf.applyTo(config, slot);
+
+    tryUntilOk(spark, maxAttempts, () -> spark.configure(
+        config,
+        ResetMode.kResetSafeParameters,
+        PersistMode.kNoPersistParameters));
+  }
+
+  public static void tryToSetPidfUntillOkTune(SparkBase spark, int maxAttempts, SparkPIDF pidf) {
+    tryToSetPidfUntillOkTune(spark, maxAttempts, pidf, ClosedLoopSlot.kSlot0);
+  }
+
+  public static void tryToSetPidfUntillOkPermanent(SparkBase spark, int maxAttempts, SparkPIDF pidf,
+      ClosedLoopSlot slot) {
+    SparkBaseConfig config;
+
+    if (spark instanceof SparkFlex) {
+      config = new SparkFlexConfig();
+    } else if (spark instanceof SparkMax) {
+      config = new SparkMaxConfig();
+    } else {
+      throw new IllegalArgumentException("Unknown SparkBase type!");
+    }
+
+    pidf.applyTo(config, slot);
+
+    tryUntilOk(spark, maxAttempts, () -> spark.configure(
+        config,
+        ResetMode.kNoResetSafeParameters,
+        PersistMode.kPersistParameters));
+  }
+
+  public static void tryToSetPidfUntillOkPermanent(SparkBase spark, int maxAttempts, SparkPIDF pidf) {
+    tryToSetPidfUntillOkPermanent(spark, maxAttempts, pidf, ClosedLoopSlot.kSlot0);
   }
 }

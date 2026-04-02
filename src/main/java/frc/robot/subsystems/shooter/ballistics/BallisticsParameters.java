@@ -7,8 +7,7 @@ import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 public class BallisticsParameters {
     public static final Transform3d kShooterOffset = new Transform3d(0.05, 0, 0.45, new Rotation3d(0, 0, 0));
 
-    public static final double kUnjamPower = -2000;
-    public static final double kMaxSpeed = 35;
+    public static final double kMaxSpeed = 32.725;
 
     public static final double kPassingSpeed = 18;
     public static final double kPassingAngle = 0;
