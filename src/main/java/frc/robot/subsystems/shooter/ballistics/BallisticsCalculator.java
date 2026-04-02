@@ -45,41 +45,37 @@ public class BallisticsCalculator {
 
     @AutoLogOutput
     public Rotation2d getShootingRobotAngle() {
+        return getDriveAngleWithShooterOffset(getRobotShootingTarget());
+    }
+
+    @AutoLogOutput
+    public Translation2d getRobotShootingTarget() {
         if (Robot.isInAllianceZone())
-            return calculateScoringAngle();
-        return calculatePassingAngle();
+            return getAllianceHubCenterTranslation();
+        return calculatePassingPosition();
     }
 
-    private Rotation2d calculateScoringAngle() {
-        return getDriveAngleWithShooterOffset(getAllianceHubCenterTranslation());
-    }
-
-    private Rotation2d calculatePassingAngle() {
+    private Translation2d calculatePassingPosition() {
         var robotPosY = AllianceFlipUtil.applyY(RobotContainer.getRobotPose().getY());
         var fieldCenterY = LinesHorizontal.center;
         if (robotPosY > fieldCenterY) {
-            return calculateLeftLanePassAngle();
+            return calculateLeftLanePassTranslation();
         }
-        return calculateRightLanePassAngle();
+        return calculateRightLanePassTranslation();
     }
 
-    private Rotation2d calculateLeftLanePassAngle() {
-        return getDriveAngleWithShooterOffset(makeLaneTarget(BallisticsParameters.kLeftLaneMultiplier));
+    private Translation2d calculateLeftLanePassTranslation() {
+        return makeLaneTarget(BallisticsParameters.kLeftLaneMultiplier);
     }
 
-    private Rotation2d calculateRightLanePassAngle() {
-        return getDriveAngleWithShooterOffset(makeLaneTarget(BallisticsParameters.kRightLaneMultiplier));
+    private Translation2d calculateRightLanePassTranslation() {
+        return makeLaneTarget(BallisticsParameters.kRightLaneMultiplier);
     }
 
-    private Pose2d makeLaneTarget(double sideMultiplier) {
-        return new Pose2d(
+    private Translation2d makeLaneTarget(double sideMultiplier) {
+        return new Translation2d(
                 AllianceFlipUtil.applyX(LinesVertical.center / 4),
-                AllianceFlipUtil.applyY(LinesHorizontal.center / 2 * sideMultiplier),
-                new Rotation2d());
-    }
-
-    private Rotation2d getDriveAngleWithShooterOffset(Pose2d targetPose) {
-        return getDriveAngleWithShooterOffset(targetPose.getTranslation());
+                AllianceFlipUtil.applyY(LinesHorizontal.center / 2 * sideMultiplier));
     }
 
     private Rotation2d getDriveAngleWithShooterOffset(Translation2d targetPose) {
