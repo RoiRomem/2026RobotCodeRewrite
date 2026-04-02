@@ -11,6 +11,7 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import frc.robot.Constants;
@@ -133,11 +134,13 @@ public class IntakeIOSim implements IntakeIO {
     }
 
     @Override
-    public void setPIDF(double kP, double kI, double kD, double kS, double kG, double kV, double kA) {
+    public void setPIDF(double kP, double kI, double kD, double kS, double kG, double kV, double kA,
+            double kMaxVelocityRadPerSec, double kMaxAccelRadPerSecSquared) {
         pivotController.setPID(kP, kI, kD);
         pivotFeedforward.setKs(kS);
         pivotFeedforward.setKg(kG);
         pivotFeedforward.setKv(kV);
         pivotFeedforward.setKa(kA);
+        pivotController.setConstraints(new Constraints(kMaxVelocityRadPerSec, kMaxAccelRadPerSecSquared));
     }
 }

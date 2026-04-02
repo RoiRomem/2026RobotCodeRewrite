@@ -70,7 +70,7 @@ public class ModuleIOSpark implements ModuleIO {
         driveSpark = new SparkFlex(swerveConfig.driveCanId, MotorType.kBrushless);
         driveEncoder = driveSpark.getEncoder();
         turnSpark = new SparkFlex(swerveConfig.turnCanId, MotorType.kBrushless);
-        turnEncoder = new CANcoder(swerveConfig.cancoderId, "rio");
+        turnEncoder = new CANcoder(swerveConfig.cancoderId);
 
         driveController = driveSpark.getClosedLoopController();
         turnController = turnSpark.getClosedLoopController();
