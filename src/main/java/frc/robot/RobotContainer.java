@@ -3,6 +3,7 @@ package frc.robot;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -11,6 +12,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.vision.Vision;
 import team6230.koiupstream.superstates.Superstate;
 import team6230.koiupstream.utils.KoiController;
 import team6230.koiupstream.utils.SwerveInputStream;
@@ -37,6 +39,8 @@ public class RobotContainer {
         private Intake intake = new Intake();
         @SuppressWarnings("unused")
         private Shooter shooter = new Shooter();
+        @SuppressWarnings("unused")
+        private Vision vision = new Vision();
 
         public RobotContainer() {
                 // autoChooser = new LoggedDashboardChooser<>("Auto Choices",
@@ -86,6 +90,10 @@ public class RobotContainer {
 
         public static Pose2d getRobotPose() {
                 return drive.getPose();
+        }
+
+        public static ChassisSpeeds getRobotVelocity() {
+                return drive.getChassisSpeeds();
         }
 
         public static void addVisionMeasurement(Pose2d visionRobotPoseMeters, double timestampSeconds,
