@@ -3,6 +3,7 @@ package frc.robot;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -83,6 +84,10 @@ public class RobotContainer {
 
         public static Pose2d getRobotPose() {
                 return drive.getPose();
+        }
+
+        public static ChassisSpeeds getRobotVelocity() {
+                return drive.getChassisSpeeds();
         }
 
         public static void addVisionMeasurement(Pose2d visionRobotPoseMeters, double timestampSeconds,
